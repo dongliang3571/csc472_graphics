@@ -22,6 +22,6 @@ unix:!macx {
 
 # Input
 HEADERS += MainWindow.h HW.h \
-	   HW0a.h HW0b.h
+	   HW0a.h HW0b.h HW1a.h HW1b.h
 SOURCES += main.cpp MainWindow.cpp HW.cpp \
-	   HW0a.cpp HW0b.cpp
+	   HW0a.cpp HW0b.cpp HW1a.cpp HW1b.cpp
