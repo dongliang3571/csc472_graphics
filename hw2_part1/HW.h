@@ -12,6 +12,7 @@
 
 #include <QtWidgets>
 #include <QGLWidget>
+//#include <GL/glu.h>
 #include <QGLFunctions>
 
 typedef QVector2D vec2;

@@ -22,28 +22,27 @@ public:
     QGroupBox*	controlPanel	();
     void		initVertexBuffer();		// init vertices
     void		initShaders	();		// init shaders
-    
+
     public slots:
 
-    
-    
+
+
 protected:
     void		initializeGL	();		// init GL state
     void		resizeGL	(int, int);	// resize GL widget
     void		paintGL		();		// render GL scene
-    
-    
+
+
 private:
     int		  m_winW;			// window width
     int		  m_winH;			// window height
     QGLShaderProgram  m_program;			// GLSL program
-   
+
     std::vector<vec2> m_points;			// vector of 2D points (XY)
     std::vector<vec3> m_colors;
     size_t		  m_numPoints;			// number of 2D points
-    
-    GLuint		  m_u_Color;		// shader index to transformation matrix
-   
+
+
 };
 
 
