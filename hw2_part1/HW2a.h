@@ -39,6 +39,7 @@ private:
     QGLShaderProgram  m_program;			// GLSL program
    
     std::vector<vec2> m_points;			// vector of 2D points (XY)
+    std::vector<vec3> m_colors;
     size_t		  m_numPoints;			// number of 2D points
     
     GLuint		  m_u_Color;		// shader index to transformation matrix
