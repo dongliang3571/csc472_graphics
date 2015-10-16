@@ -1,5 +1,0 @@
-Remeber to add following code for linux and windows platform....
-
-```
-#include <GL/glu.h>
-```
