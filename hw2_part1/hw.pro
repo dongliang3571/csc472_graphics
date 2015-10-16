@@ -24,11 +24,13 @@ unix:!macx {
 HEADERS += MainWindow.h \
 	   HW0a.h HW0b.h HW1a.h HW1b.h \
     HW2a.h \
-    HW.h
+    HW.h \
+    HW2b.h
 SOURCES += main.cpp MainWindow.cpp \
 	   HW0a.cpp HW0b.cpp HW1a.cpp HW1b.cpp \
     HW2a.cpp \
-    HW.cpp
+    HW.cpp \
+    HW2b.cpp
 
 RESOURCES += \
     resources.qrc
