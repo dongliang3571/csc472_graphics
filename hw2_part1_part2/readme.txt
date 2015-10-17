@@ -5,7 +5,7 @@
 *                                               *
 *      Insructor: George Wolberg                *
 *                                               *
-*	    Date: 09/22/2015			*
+*	    Date: 10/17/2015			*
 *		 Fall 2015			*
 *						*
 *						*
