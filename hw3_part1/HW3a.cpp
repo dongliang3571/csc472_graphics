@@ -29,8 +29,8 @@ HW3a::HW3a(QWidget *parent)
 	// init vars
 	m_theta = 0.0f;
     m_subdivisions = 0;
-	m_twist = false;
-	m_wire  = false;
+    m_twist = false;
+    m_wire  = false;
 
 }
 
@@ -49,6 +49,54 @@ HW3a::controlPanel()
 
 	// add your code here
 //	.........
+
+    groupBox->setMinimumWidth(300);
+
+    m_sliderSubdiv = new QSlider(Qt::Horizontal);
+    m_sliderSubdiv->setRange(0, 8);
+    m_sliderSubdiv->setValue(0);
+
+    // create spinBox
+    m_spinBoxSubdiv = new QSpinBox;
+    m_spinBoxSubdiv->setRange(0, 8);
+    m_spinBoxSubdiv->setValue(0);
+
+    m_sliderTheta = new QSlider(Qt::Horizontal);
+    m_sliderTheta->setRange(0, 360);
+    m_sliderTheta->setValue(0);
+
+    m_spinBoxTheta = new QSpinBox;
+    m_spinBoxTheta->setRange(0, 360);
+    m_spinBoxTheta->setValue(0);
+
+    QGridLayout *layout = new QGridLayout;
+    QLabel *label = new QLabel("Subdivide");
+    QLabel *label2 = new QLabel("Theta");
+
+    m_checkBoxTwist = new QCheckBox("Twist");
+    m_checkBoxWire = new QCheckBox("Wire");
+
+    layout->addWidget(label,0,0,1,1);
+    layout->addWidget(m_sliderSubdiv,0,1,1,3);
+    layout->addWidget(m_spinBoxSubdiv,0,4);
+
+    layout->addWidget(label2,2,0,3,1);
+    layout->addWidget(m_sliderTheta, 2, 1, 3, 3);
+    layout->addWidget(m_spinBoxTheta,3,4);
+
+    layout->addWidget(m_checkBoxTwist, 5,0,2,2);
+    layout->addWidget(m_checkBoxWire,5,2,2,2);
+
+    connect(m_sliderSubdiv, SIGNAL(valueChanged(int)), this, SLOT(changeSubdiv(int)));
+    connect(m_spinBoxSubdiv, SIGNAL(valueChanged(int)), this, SLOT(changeSubdiv(int)));
+
+    connect(m_sliderTheta, SIGNAL(valueChanged(int)),this, SLOT(changeTheta(int)));
+    connect(m_spinBoxTheta, SIGNAL(valueChanged(int)), this, SLOT(changeTheta(int)));
+
+    connect(m_checkBoxTwist, SIGNAL(stateChanged(int)), this, SLOT(changeTwist(int)));
+    connect(m_checkBoxWire, SIGNAL(stateChanged(int)), this, SLOT(changeWire(int)));
+
+    groupBox->setLayout(layout);
 
 	return(groupBox);
 }
@@ -125,7 +173,7 @@ void
 HW3a::initShaders()
 {
 	initShader1();
-//	initShader2();
+    initShader2();
 }
 
 
@@ -207,68 +255,68 @@ HW3a::initShader1()
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // HW3a::initShader2:
-//
+
 // Initialize vertex and fragment shaders for wireframe rendering.
-//
-//void
-//HW3a::initShader2()
-//{
-//	// compile vertex shader
-//	if(!m_program[1].addShaderFromSourceFile(QGLShader::Vertex, ":/vshader3a2.glsl")) {
-//		QMessageBox::critical(0, "Error", "Vertex shader error", QMessageBox::Ok);
-//		QApplication::quit();
-//	}
 
-//	// compile fragment shader
-//	if(!m_program[1].addShaderFromSourceFile(QGLShader::Fragment, ":/fshader3a2.glsl")) {
-//		QMessageBox::critical(0, "Error", "Fragment shader error",QMessageBox::Ok);
-//		QApplication::quit();
-//	}
+void
+HW3a::initShader2()
+{
+    // compile vertex shader
+    if(!m_program[1].addShaderFromSourceFile(QGLShader::Vertex, ":/vshader3a2.glsl")) {
+        QMessageBox::critical(0, "Error", "Vertex shader error", QMessageBox::Ok);
+        QApplication::quit();
+    }
 
-//	// bind the attribute variable in the glsl program with a generic vertex attribute index;
-//	// values provided via ATTRIB_VERTEX will modify the value of "a_position")
-//	glBindAttribLocation(m_program[1].programId(), ATTRIB_VERTEX, "a_Position");
+    // compile fragment shader
+    if(!m_program[1].addShaderFromSourceFile(QGLShader::Fragment, ":/fshader3a2.glsl")) {
+        QMessageBox::critical(0, "Error", "Fragment shader error",QMessageBox::Ok);
+        QApplication::quit();
+    }
 
-//	// bind the attribute variable in the glsl program with a generic vertex attribute index;
-//	// values provided via ATTRIB_TEXTURE_POSITION will modify the value of "a_TexCoord")
-//	glBindAttribLocation(m_program[1].programId(), ATTRIB_TEXTURE_POSITION, "a_TexCoord");
+    // bind the attribute variable in the glsl program with a generic vertex attribute index;
+    // values provided via ATTRIB_VERTEX will modify the value of "a_position")
+    glBindAttribLocation(m_program[1].programId(), ATTRIB_VERTEX, "a_Position");
 
-//	// link shader pipeline; attribute bindings go into effect at this point
-//	if(!m_program[1].link()) {
-//		QMessageBox::critical(0, "Error", "Could not link shader", QMessageBox::Ok);
-//		QApplication::quit();
-//	}
+    // bind the attribute variable in the glsl program with a generic vertex attribute index;
+    // values provided via ATTRIB_TEXTURE_POSITION will modify the value of "a_TexCoord")
+    glBindAttribLocation(m_program[1].programId(), ATTRIB_TEXTURE_POSITION, "a_TexCoord");
 
-//	// get storage location of u_ModelMatrix in vertex shader
-//	m_uniform[1][MV] = glGetUniformLocation(m_program[1].programId(), "u_ModelMatrix");
-//	if((int) m_uniform[1][MV] < 0) {
-//		qDebug() << "Failed to get the storage location of u_ModelMatrix";
-//		exit(-1);
-//	}
+    // link shader pipeline; attribute bindings go into effect at this point
+    if(!m_program[1].link()) {
+        QMessageBox::critical(0, "Error", "Could not link shader", QMessageBox::Ok);
+        QApplication::quit();
+    }
 
-//	// get storage location of u_Theta in vertex shader
-//	m_uniform[1][THETA] = glGetUniformLocation(m_program[1].programId(), "u_Theta");
-//	if((int) m_uniform[1][THETA] < 0) {
-//		qDebug() << "Failed to get the storage location of u_Theta";
-//		exit(-1);
-//	}
+    // get storage location of u_ModelMatrix in vertex shader
+    m_uniform[1][MV] = glGetUniformLocation(m_program[1].programId(), "u_ModelMatrix");
+    if((int) m_uniform[1][MV] < 0) {
+        qDebug() << "Failed to get the storage location of u_ModelMatrix";
+        exit(-1);
+    }
 
-//	// get storage location of u_Twist in vertex shader
-//	m_uniform[1][TWIST] = glGetUniformLocation(m_program[1].programId(), "u_Twist");
-//	if((int) m_uniform[1][TWIST] < 0) {
-//		qDebug() << "Failed to get the storage location of u_Twist";
-//		exit(-1);
-//	}
+    // get storage location of u_Theta in vertex shader
+    m_uniform[1][THETA] = glGetUniformLocation(m_program[1].programId(), "u_Theta");
+    if((int) m_uniform[1][THETA] < 0) {
+        qDebug() << "Failed to get the storage location of u_Theta";
+        exit(-1);
+    }
 
-//	// bind the glsl program
-//	glUseProgram(m_program[1].programId());
+    // get storage location of u_Twist in vertex shader
+    m_uniform[1][TWIST] = glGetUniformLocation(m_program[1].programId(), "u_Twist");
+    if((int) m_uniform[1][TWIST] < 0) {
+        qDebug() << "Failed to get the storage location of u_Twist";
+        exit(-1);
+    }
 
-//	// init model matrix; pass it to vertex shader along with theta and twist flag
-//	m_ModelMatrix.setToIdentity();
-//	glUniformMatrix4fv(m_uniform[1][MV], 1, GL_FALSE, m_ModelMatrix.constData());
-//	glUniform1f(m_uniform[1][THETA], m_theta);
-//	glUniform1i(m_uniform[1][TWIST], m_twist);
-//}
+    // bind the glsl program
+    glUseProgram(m_program[1].programId());
+
+    // init model matrix; pass it to vertex shader along with theta and twist flag
+    m_ModelMatrix.setToIdentity();
+    glUniformMatrix4fv(m_uniform[1][MV], 1, GL_FALSE, m_ModelMatrix.constData());
+    glUniform1f(m_uniform[1][THETA], m_theta);
+    glUniform1i(m_uniform[1][TWIST], m_twist);
+}
 
 
 
@@ -313,6 +361,8 @@ HW3a::initVertexBuffer()
     glVertexAttribPointer(ATTRIB_TEXTURE_POSITION, 2, GL_FLOAT, false, 0, NULL);
     glEnableVertexAttribArray(ATTRIB_TEXTURE_POSITION);
     
+    m_points.clear();
+    m_coords.clear();
 
 }
 
@@ -452,6 +502,19 @@ HW3a::reset()
 	// reset parameters
 //	......
 
+    m_theta = 0.0f;
+    m_subdivisions = 0;
+    m_twist = false;
+    m_wire  = false;
+    m_ModelMatrix.setToIdentity();
+
+    m_sliderTheta->setValue(0);
+    m_spinBoxTheta->setValue(0);
+    m_sliderSubdiv->setValue(m_subdivisions);
+    m_spinBoxSubdiv->setValue(m_subdivisions);
+    m_checkBoxTwist->setCheckState(Qt::Unchecked);
+    m_checkBoxWire->setCheckState(Qt::Unchecked);
+
 	// copy data to vertex shader
 	for(int i=0; i<2; i++) {
 		glUseProgram(m_program[i].programId());		// bind the glsl progam
@@ -476,6 +539,15 @@ HW3a::changeTheta(int angle)
 {
 	// update slider and spinbox
 //	......
+    m_sliderTheta->blockSignals(true);
+    m_sliderTheta->setValue(angle);
+    m_sliderTheta->blockSignals(false);
+
+    m_spinBoxTheta->blockSignals(true);
+    m_spinBoxTheta->setValue(angle);
+    m_spinBoxTheta->blockSignals(false);
+
+    m_theta = angle * (M_PI / 180);
 
 	// update model's rotation matrix
 	m_ModelMatrix.setToIdentity();
@@ -483,7 +555,7 @@ HW3a::changeTheta(int angle)
 	for(int i=0; i<2; i++) {
 		glUseProgram(m_program[i].programId());		// bind the glsl progam
 		glUniformMatrix4fv(m_uniform[i][MV], 1, GL_FALSE, m_ModelMatrix.constData());
-		glUniform1f(m_uniform[i][THETA], m_theta);
+        glUniform1f(m_uniform[i][THETA], m_theta);
 	}
 
 	// draw
@@ -502,7 +574,16 @@ HW3a::changeSubdiv(int subdivisions)
 {
 	// update slider and spinbox
 //	......
-	
+
+    m_sliderSubdiv->blockSignals(true);
+    m_sliderSubdiv->setValue(subdivisions);
+    m_sliderSubdiv->blockSignals(false);
+
+
+
+    m_spinBoxSubdiv->blockSignals(true);
+    m_spinBoxSubdiv->setValue(subdivisions);
+    m_spinBoxSubdiv->blockSignals(false);
 	// init vars
 	m_subdivisions = subdivisions;
 
