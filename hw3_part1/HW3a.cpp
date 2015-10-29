@@ -172,7 +172,7 @@ HW3a::initTexture()
 void
 HW3a::initShaders()
 {
-	initShader1();
+    initShader1();
     initShader2();
 }
 
@@ -187,7 +187,7 @@ void
 HW3a::initShader1()
 {
 	// compile vertex shader
-	if(!m_program[0].addShaderFromSourceFile(QGLShader::Vertex, ":/vshader3a1.glsl")) {
+    if(!m_program[0].addShaderFromSourceFile(QGLShader::Vertex, ":/vshader3a1.glsl")) {
 		QMessageBox::critical(0, "Error", "Vertex shader error", QMessageBox::Ok); 
 		QApplication::quit();
 	}
@@ -248,7 +248,7 @@ HW3a::initShader1()
 	glUniformMatrix4fv(m_uniform[0][MV], 1, GL_FALSE, m_ModelMatrix.constData());
 	glUniform1f(m_uniform[0][THETA], m_theta);
 	glUniform1i(m_uniform[0][TWIST], m_twist);
-    glUniform1i(m_uniform[0][SAMPLER], GL_TEXTURE0);
+    glUniform1i(m_uniform[0][SAMPLER], 0);
 }
 
 
@@ -479,7 +479,7 @@ HW3a::paintGL()
 
 	// draw texture mapped triangles
 	glUseProgram(m_program[0].programId());		// bind the glsl progam
-	glDrawArrays(GL_TRIANGLES, 0, (GLsizei) m_numPoints);
+    glDrawArrays(GL_TRIANGLES, 0, (GLsizei) m_numPoints);
 
 	// draw wireframe, if necessary
 	if(m_wire) {
