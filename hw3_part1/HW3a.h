@@ -63,6 +63,9 @@ private:
 	std::vector<vec2> m_coords;			// vector of 2D coords (UV)
 	int		  m_numPoints;			// number of 2D points
 	QMatrix4x4	  m_ModelMatrix;		// 4x4 transformation matrix
+    
+    QMatrix4x4    m_ViewMatrix;
+    
 	QImage		  m_image;			// texture image
 	GLuint		  m_texture;			// shader index to texture unit
 	GLuint		  m_uniform[2][16];		// uniform vars for two shaders and <16 vars

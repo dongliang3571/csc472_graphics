@@ -176,7 +176,7 @@ void HW2b::resizeGL(int w, int h)
 }
 
 void HW2b::divide_triangle(vec2 a, vec2 b, vec2 c, int k){
-    
+
     if (k>0) {
         
         float midab1 = (a.x() + b.x()) / 2.0;

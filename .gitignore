@@ -1,10 +1,13 @@
-<<<<<<< HEAD
 *.pro.user
-.DS_Store
-*.stash
-=======
 .DS_Store
 *.zip
 *.stash
 *.user
->>>>>>> 02756085412ed59a6441a5d2faf96a6bd8564b40
+Debug
+*.xcodeproj
+*.plist
+Release
+moc
+obj
+qrc_resources.cpp
+

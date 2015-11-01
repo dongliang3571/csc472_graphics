@@ -9,5 +9,11 @@
         <file>fshader3a1.glsl</file>
         <file>vshader3a2.glsl</file>
         <file>fshader3a2.glsl</file>
+        <file>fshader3b1.glsl</file>
+        <file>fshader3b2.glsl</file>
+        <file>vshader3b1.glsl</file>
+        <file>vshader3b2.glsl</file>
+        <file>envmap.ppm</file>
+        <file>texmap.ppm</file>
     </qresource>
 </RCC>

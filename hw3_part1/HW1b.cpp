@@ -70,7 +70,8 @@ HW1b::resizeGL(int w, int h)
 void
 HW1b::paintGL()
 {
-	int i, w2, h2;
+    int w2, h2;
+    size_t i;
 	w2 = m_winW;
 	h2 = m_winH;
 

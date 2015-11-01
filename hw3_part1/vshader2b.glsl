@@ -22,7 +22,7 @@ void main() {
 		v_Color     = vec4(a_Color,1);
 	}
 	else{
-		gl_Position = gl_ModelViewProjectionMatrix * u_ModelMatrix * vec4(a_Position,0,1);
+		gl_Position = gl_ModelViewProjectionMatrix * u_ModelMatrix * vec4(a_Position,-1.0,1);
 		v_Color     = vec4(a_Color,1);
 	}
 }

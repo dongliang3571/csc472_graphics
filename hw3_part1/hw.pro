@@ -26,13 +26,15 @@ HEADERS += MainWindow.h \
     HW2a.h \
     HW.h \
     HW2b.h \
-    HW3a.h
+    HW3a.h \
+    HW3b.h
 SOURCES += main.cpp MainWindow.cpp \
 	   HW0a.cpp HW0b.cpp HW1a.cpp HW1b.cpp \
     HW2a.cpp \
     HW.cpp \
     HW2b.cpp \
-    HW3a.cpp
+    HW3a.cpp \
+    HW3b.cpp
 
 RESOURCES += \
     resources.qrc
