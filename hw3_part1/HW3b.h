@@ -52,6 +52,7 @@ protected:
     void		initShader2	();		// wireframe rendering shader
     
     void        initPosition();
+   
     
     void        mousePressEvent(QMouseEvent *event);
     void        mouseReleaseEvent(QMouseEvent *event);
@@ -88,6 +89,7 @@ private:
     bool drawFaceNorms;
     bool antialias;
     bool envMap;
+    bool m_wire;
     
     // viewing
     float sphi;
