@@ -1,64 +1,26 @@
 
-// ===============================================================
-// Computer Graphics Homework Solutions
-// Copyright (C) 2015 by George Wolberg
-//
-// HW3b.cpp - HW3b class
-//
-// Written by: George Wolberg, 2015
-// ===============================================================
 
 #include "HW3b.h"
 
-enum {
-    MVP,
-    VIEWMATRIX,
-    PROJECTMATRIX,
-    SAMPLER
-};
-
-
-enum {WIREFRAME, HIDDENLINE, FLATSHADED, SMOOTHSHADED, TEXTURED};
-enum {FULLSCREEN, FACENORMALS, ANTIALIAS, ENVMAP};
-enum {WEAK, NORMAL, STRONG};
-enum {SMALL, MEDIUM, LARGE, XLARGE};
-enum {CURRENT, FLAT, SPIKE, DIAGONALWALL, SIDEWALL, HOLE,
+enum {MVP, VIEWMATRIX, PROJECTMATRIX, SAMPLER};
+enum {TEXTURED, WIREFRAME, TEX_WIRE};
+enum {FLAT, SPIKE, DIAGONALWALL, SIDEWALL, HOLE,
     MIDDLEBLOCK, DIAGONALBLOCK, CORNERBLOCK, HILL, HILLFOUR};
-
-
-
 #define SQRTOFTWOINV 1.0 / 1.414213562
 
-unsigned int TexId1, TexId2;
 
 
-int downX, downY;
-bool middleButton = false;
-GLfloat lightPosition[] = { 0.0, 0.0, 1.0, 1.0};
-int displayMenu, otherMenu, speedMenu, sizeMenu, resetMenu, mainMenu;
-
-
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// HW3b::HW3b:
-//
-// HW3b constructor.
-//
 HW3b::HW3b(QWidget *parent)
     : HW(parent)
 {
-    m_wire = true;
-    waving = true;
-    editing = false;
-    drawFaceNorms = false;
-    antialias = false;
-    envMap = false;
+    waving = false;
     grid = 17;
-    dt=0.008;
-    displayMode = TEXTURED;
-    resetMode = HILL;
+    dt=0.006;
+    displayMode = TEX_WIRE;
+    resetMode = HILLFOUR;
     sphi=90.0;stheta=45.0;
     sdepth = 5.0/4.0 * (grid+3);
-    zNear=15.0; zFar=100.0;
+    zNear=1.0; zFar=140.0;
     aspect = 5.0/4.0;
     timer = new QTimer(this);
     leftButton = false;
@@ -69,29 +31,82 @@ HW3b::HW3b(QWidget *parent)
 
 
 
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// HW3b::controlPanel:
-//
-// Create control panel groupbox.
-//
 QGroupBox*
 HW3b::controlPanel()
 {
     // init group box
     QGroupBox *groupBox = new QGroupBox("Homework 3a");
 
-
     groupBox->setMinimumWidth(300);
-//    m_spinBoxTheta->setValue(0);
-//
     QGridLayout *layout = new QGridLayout;
-//    QLabel *label = new QLabel("Subdivide");
-//    QLabel *label2 = new QLabel("Theta");
-
+    m_comboBox = new QComboBox();
+    m_comboBox->addItem("Texture");
+    m_comboBox->addItem("Wireframe");
+    m_comboBox->addItem("Tex+Wire");
+    m_comboBox->setCurrentIndex(TEX_WIRE);
+    
+    
+    m_comboBox_mode = new QComboBox();
+    m_comboBox_mode->addItem("FLAT");
+    m_comboBox_mode->addItem("SPIKE");
+    m_comboBox_mode->addItem("DIAGONALWALL");
+    m_comboBox_mode->addItem("SIDEWALL");
+    m_comboBox_mode->addItem("HOLE");
+    m_comboBox_mode->addItem("MIDDLEBLOCK");
+    m_comboBox_mode->addItem("DIAGONALBLOCK");
+    m_comboBox_mode->addItem("CORNERBLOCK");
+    m_comboBox_mode->addItem("HILL");
+    m_comboBox_mode->addItem("HILLFOUR");
+    m_comboBox_mode->setCurrentIndex(HILLFOUR);
+    
+    
     
     m_PushbottonGo = new QPushButton("go");
-    layout->addWidget(m_PushbottonGo);
+    m_PushbottonStop = new QPushButton("Stop");
+    layout->addWidget(m_PushbottonGo,0,0,1,2);
+    layout->addWidget(m_PushbottonStop,1,0,1,2);
+    layout->addWidget(m_comboBox,2,0,1,2);
+    layout->addWidget(m_comboBox_mode,3,0,1,2);
+    
+    m_sliderGrid = new QSlider(Qt::Horizontal);
+    m_sliderGrid->setRange(2, 64);
+    m_sliderGrid->setValue(16);
+    
+    m_spinboxGrid = new QSpinBox;
+    m_spinboxGrid->setRange(2,64);
+    m_spinboxGrid->setValue(16);
+    
+    m_sliderSpeed = new QSlider(Qt::Horizontal);
+    m_sliderSpeed->setRange(1, 20);
+    m_sliderSpeed->setValue(6);
+    
+    m_spinboxSpeed = new QSpinBox;
+    m_spinboxSpeed->setRange(1,20);
+    m_spinboxSpeed->setValue(6);
+    
+    m_labelGrid = new QLabel("Grid");
+    m_labelSpeed = new QLabel("Speed");
+    
+    layout->addWidget(m_labelGrid,4,0,1,1);
+    layout->addWidget(m_sliderGrid,4,1,1,1);
+    layout->addWidget(m_spinboxGrid,4,3,1,1);
+    
+    layout->addWidget(m_labelSpeed,5,0,1,1);
+    layout->addWidget(m_sliderSpeed,5,1,1,1);
+    layout->addWidget(m_spinboxSpeed,5,3,1,1);
+
+    
+    connect(m_comboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(displayChange(int)));
+    connect(m_comboBox_mode, SIGNAL(currentIndexChanged(int)), this, SLOT(selectMode(int)));
     connect(m_PushbottonGo, SIGNAL(clicked()), this, SLOT(begintimer()));
+    connect(m_PushbottonStop, SIGNAL(clicked()), this, SLOT(stopTimer()));
+    
+    connect(m_sliderGrid, SIGNAL(valueChanged(int)), this, SLOT(setsize(int)));
+    connect(m_spinboxGrid, SIGNAL(valueChanged(int)), this, SLOT(setsize(int)));
+    connect(m_sliderSpeed, SIGNAL(valueChanged(int)), this, SLOT(setSpeed(int)));
+    connect(m_spinboxSpeed, SIGNAL(valueChanged(int)), this, SLOT(setSpeed(int)));
+
+    
     groupBox->setLayout(layout);
     
 
@@ -99,91 +114,121 @@ HW3b::controlPanel()
 }
 
 void HW3b::begintimer(){
-    timer->start(0);
+    
+    waving = true;
+    if (waving == true) {
+        timer->start(0);
+        
+    }
+    else{
+        timer->stop();
+    }
+}
+
+void HW3b::stopTimer(){
+    waving = false;
+    timer->stop();
 }
 
 void HW3b::wave()
 {
-    
     getforce();
     getvelocity();
     getposition();
     initVertexBuffer();
     updateGL();
+}
+
+void HW3b::displayChange(int index){
+    
+    displayMode = index;
+    updateGL();
     
 }
 
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// HW3b::initializeGL:
-//
-// Initialization routine before display loop.
-// Gets called once before the first time resizeGL() or paintGL() is called.
-//
-void
-HW3b::initializeGL()
+void HW3b::selectMode(int index){
+    timer->stop();
+    resetMode = index;
+    initPoints();
+    initVertexBuffer();
+    updateGL();
+    
+}
+
+void HW3b::setsize(int value)
+{
+    m_sliderGrid->setValue(value);
+    m_spinboxGrid->setValue(value);
+    grid = value+1;
+    sdepth = 5.0/4.0 * (grid+3);
+    initPoints();
+    initPosition();
+    initVertexBuffer();
+    updateGL();
+}
+
+void HW3b::setSpeed(int value)
+{
+    m_spinboxSpeed->setValue(value);
+    m_sliderSpeed->setValue(value);
+    stopTimer();
+    waving=false;
+    dt =float(value/1000.0);
+    timer->start(0);
+
+}
+
+void HW3b::initializeGL()
 {
     // initialize GL function resolution for current context
     initializeGLFunctions();
-    
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LEQUAL);
-    
-    // init texture
     initTexture();
-
-    // init vertex and fragment shaders
     initShaders();
     initPoints();
-    // initialize vertex buffer and write positions to vertex shader
     initVertexBuffer();
-
-    // init state variables
+    
+    glEnable(GL_DEPTH_TEST);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_BLEND);
+    glEnable(GL_LINE_SMOOTH);
+    
     glClearColor(0.0, 0.0, 0.0, 0.0);	// set background color
     glColor3f   (1.0, 1.0, 0.0);		// set foreground color
-    
 }
 
-
-
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// HW3b::initTexture:
-//
-// Initialize texture.
-//
-void
-HW3b::initTexture()
+void HW3b::initTexture()
 {
     // read image from file
-//    m_image.load(QString(":/envmap.ppm"));
-//
-//    // convert jpg to GL formatted image
-//    QImage qImage = QGLWidget::convertToGLFormat(m_image);
-//
-//    // init vars
-//    int w = qImage.width ();
-//    int h = qImage.height();
-//
-//    // generate texture name and bind it
-//    glActiveTexture(GL_TEXTURE0);
-//    glGenTextures(1, &m_texture);
-//    glBindTexture(GL_TEXTURE_2D, m_texture);
-//
-//    // set the texture parameters
-//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-//    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, qImage.bits());
+    m_image.load(QString(":/envmap.ppm"));
 
-//    loading second image
-    m_image.load(QString(":/texmap.ppm"));
-
-//     convert jpg to GL formatted image
+    // convert jpg to GL formatted image
     QImage qImage = QGLWidget::convertToGLFormat(m_image);
 
     // init vars
     int w = qImage.width ();
     int h = qImage.height();
+
+    // generate texture name and bind it
+    glActiveTexture(GL_TEXTURE0);
+    glGenTextures(1, &m_texture);
+    glBindTexture(GL_TEXTURE_2D, m_texture);
+
+    // set the texture parameters
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, qImage.bits());
+
+//    loading second image
+    m_image.load(QString(":/texmap.ppm"));
+
+//     convert jpg to GL formatted image
+    qImage = QGLWidget::convertToGLFormat(m_image);
+
+    // init vars
+    w = qImage.width ();
+    h = qImage.height();
 
     // generate texture name and bind it
     glGenTextures(1, &m_texture);
@@ -199,13 +244,6 @@ HW3b::initTexture()
 
 }
 
-
-
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// HW3b::initShaders:
-//
-// Initialize vertex and fragment shaders.
-//
 void
 HW3b::initShaders()
 {
@@ -213,15 +251,7 @@ HW3b::initShaders()
     initShader2();
 }
 
-
-
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// HW3b::initShader1:
-//
-// Initialize vertex and fragment shaders for texture mapping.
-//
-void
-HW3b::initShader1()
+void HW3b::initShader1()
 {
     // compile vertex shader
     if(!m_program[0].addShaderFromSourceFile(QGLShader::Vertex, ":/vshader3b1.glsl")) {
@@ -254,20 +284,6 @@ HW3b::initShader1()
         exit(-1);
     }
 
-    // get storage location of u_Theta in vertex shader
-//    m_uniform[0][VIEWMATRIX] = glGetUniformLocation(m_program[0].programId(), "u_ViewMatrix");
-//    if((int) m_uniform[0][VIEWMATRIX] < 0) {
-//        qDebug() << "Failed to get the storage location of u_ViewMatrix";
-//        exit(-1);
-//    }
-
-
-//    m_uniform[0][PROJECTMATRIX] = glGetUniformLocation(m_program[0].programId(), "u_ProjectMatrix");
-//    if((int) m_uniform[0][PROJECTMATRIX] < 0) {
-//        qDebug() << "Failed to get the storage location of u_ProjectMatrix";
-//        exit(-1);
-//    }
-
     // get storage location of u_Sampler in fragment shader
     m_uniform[0][SAMPLER] = glGetUniformLocation(m_program[0].programId(), "u_Sampler");
     if((int) m_uniform[0][SAMPLER] < 0) {
@@ -286,11 +302,8 @@ HW3b::initShader1()
     m_ModelMatrix.translate(-(float)((grid+1)/2-1), -(float)((grid+1)/2-1), 0.0);
     
     m_ViewMatrix.setToIdentity();
-    //    m_ViewMatrix.lookAt(vec3(0,0,1), vec3(0.0,0.0,0.0), vec3(0.0,-1.0,0.0));
-    //    glUniformMatrix4fv(m_uniform[0][VIEWMATRIX], 1, GL_FALSE, m_ViewMatrix.constData());
-    
     m_ProjectMatrix.setToIdentity();
-    m_ProjectMatrix.perspective(65.0, aspect, zNear, zFar);
+    m_ProjectMatrix.perspective(64.0, aspect, zNear, zFar);
     
     m_ModelMatrix = m_ViewMatrix * m_ModelMatrix;
     m_ModelMatrix = m_ProjectMatrix * m_ModelMatrix;
@@ -317,16 +330,8 @@ HW3b::initShader2()
         QApplication::quit();
     }
 
-    // bind the attribute variable in the glsl program with a generic vertex attribute index;
-    // values provided via ATTRIB_VERTEX will modify the value of "a_position")
     glBindAttribLocation(m_program[1].programId(), ATTRIB_VERTEX, "a_Position");
 
-    
-    // bind the attribute variable in the glsl program with a generic vertex attribute index;
-    // values provided via ATTRIB_TEXTURE_POSITION will modify the value of "a_TexCoord")
-//    glBindAttribLocation(m_program[1].programId(), ATTRIB_TEXTURE_POSITION, "a_TexCoord");
-
-    // link shader pipeline; attribute bindings go into effect at this point
     if(!m_program[1].link()) {
         QMessageBox::critical(0, "Error", "Could not link shader", QMessageBox::Ok);
         QApplication::quit();
@@ -348,15 +353,12 @@ HW3b::initShader2()
     m_ModelMatrix.translate(0.0,0.0,-sdepth);
     //
     m_ModelMatrix.rotate(-stheta, 1.0, 0.0, 0.0);
-    m_ModelMatrix.rotate(-sphi, 0.0, 0.0, 1.0);
+    m_ModelMatrix.rotate(sphi, 0.0, 0.0, 1.0);
     m_ModelMatrix.translate(-(float)((grid+1)/2-1), -(float)((grid+1)/2-1), 0.0);
     
     m_ViewMatrix.setToIdentity();
-    //    m_ViewMatrix.lookAt(vec3(0,0,1), vec3(0.0,0.0,0.0), vec3(0.0,-1.0,0.0));
-    //    glUniformMatrix4fv(m_uniform[0][VIEWMATRIX], 1, GL_FALSE, m_ViewMatrix.constData());
-    
     m_ProjectMatrix.setToIdentity();
-    m_ProjectMatrix.perspective(65.0, aspect, zNear, zFar);
+    m_ProjectMatrix.perspective(64.0, aspect, zNear, zFar);
     
     m_ModelMatrix = m_ViewMatrix * m_ModelMatrix;
     m_ModelMatrix = m_ProjectMatrix * m_ModelMatrix;
@@ -376,16 +378,11 @@ void HW3b::initPosition(){
     m_ModelMatrix.translate(-(float)((grid+1)/2-1), -(float)((grid+1)/2-1), 0.0);
     
     m_ViewMatrix.setToIdentity();
-    //    m_ViewMatrix.lookAt(vec3(0,0,1), vec3(0.0,0.0,0.0), vec3(0.0,-1.0,0.0));
-    //    glUniformMatrix4fv(m_uniform[0][VIEWMATRIX], 1, GL_FALSE, m_ViewMatrix.constData());
-    
     m_ProjectMatrix.setToIdentity();
-    m_ProjectMatrix.perspective(65.0, aspect, zNear, zFar);
+    m_ProjectMatrix.perspective(64.0, aspect, zNear, zFar);
     
     m_ModelMatrix = m_ViewMatrix * m_ModelMatrix;
     m_ModelMatrix = m_ProjectMatrix * m_ModelMatrix;
-    //    glUniformMatrix4fv(m_uniform[0][PROJECTMATRIX], 1, GL_FALSE, m_ProjectMatrix.constData());
-    
     glUseProgram(m_program[1].programId());
     glUniformMatrix4fv(m_uniform[1][MVP], 1, GL_FALSE, m_ModelMatrix.constData());
     glUseProgram(m_program[0].programId());
@@ -400,56 +397,26 @@ HW3b::initVertexBuffer()
     
     int i,j;
     
-//    for(i=0; i<grid; ++i){
-//        for (j=0; j<grid; ++j)
-//            m_points.push_back(vec3((float)i,(float)j,posit[i][j]));
-//    
-//    }
-//    for(i=0; i<grid; ++i){
-//        for (j=0; j<grid; ++j)
-//            m_points.push_back(vec3((float)j,(float)i,posit[i][j]));
-//    }
-   
-    
     for (i=0; i<grid-1; i++) {
         for (j=0; j<grid-1; j++){
             m_points.push_back(vec3(i,j,posit[i][j]));
             m_points.push_back(vec3(i,j+1,posit[i][j+1]));
             m_points.push_back(vec3(i+1,j+1,posit[i+1][j+1]));
             m_points.push_back(vec3(i+1,j,posit[i+1][j]));
-            
         }
     }
-    
-//    qDebug() <<m_points[5].z()<< "Failed to get the storage location of u_ProjectMatrix";
-//    exit(-1);
-    
+
     m_numPoints = m_points.size();	// save number of vertices
 
     static GLuint vertexBuffer = -1;
     glGenBuffers(1, &vertexBuffer);
-    // bind the buffer to the GPU; all future drawing calls gets data from this buffer
     glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-    // copy the vertices from CPU to GPU
     
     glBufferData(GL_ARRAY_BUFFER, m_numPoints*sizeof(vec3), &m_points[0], GL_STATIC_DRAW);
     glVertexAttribPointer(ATTRIB_VERTEX, 3, GL_FLOAT, GL_FALSE, 0, NULL);
     glEnableVertexAttribArray(ATTRIB_VERTEX);
 
     getTexCoords();
-//    for (i=0; i<grid*grid*2; ++i) {
-//        m_coords.push_back(vec2());
-//    }
-    
-//    for(i=0; i<grid; ++i){
-//        for (j=0; j<grid; ++j)
-//            m_coords.push_back(vec2(texCoords[i][j][0],texCoords[i][j][1]));
-//        
-//    }
-//    for(i=0; i<grid; ++i){
-//        for (j=0; j<grid; ++j)
-//            m_points.push_back(vec3((float)i,(float)j,posit[i][j]));
-//    }
     
     for (i=0; i<grid-1; i++) {
         for (j=0; j<grid-1; j++){
@@ -504,15 +471,7 @@ HW3b::resizeGL(int w, int h)
     glOrtho(-xmax, xmax, -ymax, ymax, -1.0, 1.0);
 }
 
-
-
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// HW3b::paintGL:
-//
-// Update GL scene.
-//
-void
-HW3b::paintGL()
+void HW3b::paintGL()
 {
     // clear canvas with background color
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -522,50 +481,27 @@ HW3b::paintGL()
             
         case TEXTURED:
             glUseProgram(m_program[0].programId());
-            
-            
-            
-            
-//            glDrawArrays(GL_LINES, 0, (GLsizei) m_numPoints);
-//            for(int i=0; i<m_numPoints; i+=4){
-//                glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-            
-                glDrawArrays(GL_QUADS, 0, (GLsizei) m_numPoints);
-            
-           
-//            glUseProgram(m_program[1].programId());		// bind the glsl progam
-//            for(int i=0; i<m_numPoints; i+=4){
-//                glDrawArrays(GL_LINE_LOOP, i, (GLsizei) 4);
-//            }
-            
+            glDrawArrays(GL_QUADS, 0, (GLsizei) m_numPoints);
             break;
+        case WIREFRAME:
+            glUseProgram(m_program[1].programId());		// bind the glsl progam
+            glLineWidth(2.0f);
+            for(int i=0; i<(int)m_numPoints; i+=4)
+                glDrawArrays(GL_LINE_LOOP, i, (GLsizei) 4);
+            break;
+        case TEX_WIRE:
+            glUseProgram(m_program[0].programId());
+            glDrawArrays(GL_QUADS, 0, (GLsizei) m_numPoints);
             
-            
-//        case WIREFRAME:
-//            glUseProgram(m_program[0].programId());		// bind the glsl progam
-//            for ( int i=0; i<=(int)m_numPoints-grid; i=i+grid) {
-//                glDrawArrays(GL_LINE_STRIP, i, (GLsizei) grid);
-//            }
-//            break;
-        
-//        case HIDDENLINE:   drawHiddenLine();	break;
-//        case FLATSHADED:   drawFlatShaded();	break;
-//        case SMOOTHSHADED: drawSmoothShaded();	break;
-        
+            glUseProgram(m_program[1].programId());		// bind the glsl progam
+            glLineWidth(2.0f);
+            for(int i=0; i<(int)m_numPoints; i+=4)
+                glDrawArrays(GL_LINE_LOOP, i, (GLsizei) 4);
+            break;
     }
-    
-    
 }
 
-
-
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// HW3b::reset:
-//
-// Reset parameters.
-//
-void
-HW3b::initPoints()
+void HW3b::initPoints()
 {
     for(int i=0; i<grid; i++) {
         for(int j=0; j<grid; j++) {
@@ -612,8 +548,6 @@ HW3b::initPoints()
         }
     }
 
-    // draw
-//    updateGL();
 }
 
 void HW3b::mousePressEvent(QMouseEvent *event)
@@ -767,130 +701,3 @@ void HW3b::getTexCoords()
     }
 }
 
-void HW3b::getFaceNorms(void)
-{
-    float vec0[3], vec1[3], vec2[3], norm0[3], norm1[3];
-    float geom0[3], geom1[3], geom2[3], geom3[3];
-    for(int i=0; i < grid-1; i++) {
-        for(int j = 0; j < grid-1; j++) {
-            // get vectors from geometry points
-            geom0[0] = i;   geom0[1] = j;   geom0[2] = posit[ i ][ j ];
-            geom1[0] = i;   geom1[1] = j+1; geom1[2] = posit[ i ][j+1];
-            geom2[0] = i+1; geom2[1] = j;   geom2[2] = posit[i+1][ j ];
-            geom3[0] = i+1; geom3[1] = j+1; geom3[2] = posit[i+1][j+1];
-            
-            sub( vec0, geom1, geom0 );
-            sub( vec1, geom1, geom2 );
-            sub( vec2, geom1, geom3 );
-            
-            // get triangle face normals from vectors & normalize them
-            cross( norm0, vec0, vec1 );
-            norm ( norm0 );
-            
-            cross( norm1, vec1, vec2 );
-            norm ( norm1 );
-            
-            copy( faceNorms[0][i][j], norm0 );
-            copy( faceNorms[1][i][j], norm1 );
-        }
-    }
-}
-
-// vertex normals - average of face normals for smooth shading
-void HW3b::getVertNorms(void)
-{
-    float avg[3];
-    for(int i=0; i < grid; i++) {
-        for(int j=0; j < grid; j++) {
-            // for each vertex, average normals from all faces sharing vertex;
-            // check each quadrant in turn
-            set(avg, 0.0, 0.0, 0.0);
-            
-            // right & above
-            if (j < grid-1 && i < grid-1)
-                add( avg, avg, faceNorms[0][i][j] );
-            
-            // right & below
-            if (j < grid-1 && i > 0) {
-                add( avg, avg, faceNorms[0][i-1][j] );
-                add( avg, avg, faceNorms[1][i-1][j] );
-            }
-            
-            // left & above
-            if (j > 0 && i < grid-1) {
-                add( avg, avg, faceNorms[0][i][j-1] );
-                add( avg, avg, faceNorms[1][i][j-1] );
-            }
-            
-            // left & below
-            if (j > 0 && i > 0)
-                add( avg, avg, faceNorms[1][i-1][j-1] );
-            
-            // normalize
-            norm( avg );
-            copy( vertNorms[i][j], avg );
-        }
-    }
-}
-
-
-void HW3b::getFaceNormSegs(void)
-{
-    float center0[3], center1[3], normSeg0[3], normSeg1[3];
-    float geom0[3], geom1[3], geom2[3], geom3[3];
-    for(int i=0; i < grid-1; i++) {
-        for(int j=0; j < grid-1; j++) {
-            geom0[0] = i;   geom0[1] = j;   geom0[2] = posit[ i ][j];
-            geom1[0] = i;   geom1[1] = j+1; geom1[2] = posit[ i ][j+1];
-            geom2[0] = i+1; geom2[1] = j;   geom2[2] = posit[i+1][j];
-            geom3[0] = i+1; geom3[1] = j+1; geom3[2] = posit[i+1][j+1];
-            
-            // find center of triangle face by averaging three vertices
-            add( center0, geom2, geom0 );
-            add( center0, center0, geom1 );
-            scalDiv( center0, 3.0 );
-            
-            add( center1, geom2, geom1 );
-            add( center1, center1, geom3 );
-            scalDiv( center1, 3.0 );
-            
-            // translate normal to center of triangle face to get normal segment
-            add( normSeg0, center0, faceNorms[0][i][j] );
-            add( normSeg1, center1, faceNorms[1][i][j] );
-            
-            copy( faceNormSegs[0][0][i][j], center0 );
-            copy( faceNormSegs[1][0][i][j], center1 );
-            
-            copy( faceNormSegs[0][1][i][j], normSeg0 );
-            copy( faceNormSegs[1][1][i][j], normSeg1 );
-        }
-    }
-}
-
-//void setSize(int value)
-//{
-//    int prevGrid = grid;
-//    switch(value) {
-//        case SMALL : grid = MAXGRID/4; break;
-//        case MEDIUM: grid = MAXGRID/2; break;
-//        case LARGE : grid = MAXGRID/1.5; break;
-//        case XLARGE: grid = MAXGRID; break;
-//    }
-
-//    if (prevGrid > grid) reset(resetMode);
-
-//    zNear= grid/10.0;
-//    zFar= grid*3.0;
-//    sdepth = 5.0/4.0 * grid;
-//    getTexCoords();
-//    glutPostRedisplay();
-//}
-
-//void setSpeed(int value)
-//{
-//    switch(value) {
-//        case WEAK  : dt = 0.001; break;
-//        case NORMAL: dt = 0.004; break;
-//        case STRONG: dt = 0.008; break;
-//    }
-//}

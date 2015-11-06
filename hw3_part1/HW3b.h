@@ -5,11 +5,9 @@
 #include <QGLShaderProgram>
 #include <QtOpenGL>
 
+ls
 
-// ----------------------------------------------------------------------
-// standard include files
-//
-#define MAXGRID 63
+#define MAXGRID 65
 
 
 
@@ -34,14 +32,17 @@ public:
     void        cross(float vec0[3], float vec1[3], float vec2[3]);
     void        norm(float vec[3]);
     void        set(float vec[3], float x, float y, float z);
-    void        getFaceNorms();
-    void        getVertNorms();
-    void        getFaceNormSegs();
     void        getTexCoords();
+    
 
 public slots:
     void        wave();
     void        begintimer();
+    void        stopTimer();
+    void        displayChange(int);
+    void        selectMode(int);
+    void        setSpeed(int value);
+    void        setsize(int value);
     
 protected:
     void		initializeGL	();		// init GL state
@@ -74,7 +75,16 @@ private:
     QMatrix4x4	  m_ProjectMatrix;
     
     QPushButton   *m_PushbottonGo;
+    QPushButton   *m_PushbottonStop;
     QTimer        *timer;
+    QComboBox     *m_comboBox;
+    QComboBox     *m_comboBox_mode;
+    QSlider       *m_sliderGrid;
+    QSlider       *m_sliderSpeed;
+    QSpinBox      *m_spinboxGrid;
+    QSpinBox      *m_spinboxSpeed;
+    QLabel        *m_labelSpeed;
+    QLabel        *m_labelGrid;
     
     
     QImage		  m_image;			// texture image
@@ -85,13 +95,8 @@ private:
     //members from demo
 
     bool waving;
-    bool editing;
-    bool drawFaceNorms;
-    bool antialias;
-    bool envMap;
-    bool m_wire;
+    bool leftButton;
     
-    // viewing
     float sphi;
     float stheta;
     float sdepth;
@@ -100,19 +105,14 @@ private:
     float aspect;
     float dt;
     int grid;
-    
-    bool leftButton;
-    
-    
     int displayMode;
     int resetMode;
+    int downX;
+    int downY;
     
     float force[MAXGRID][MAXGRID];
     float veloc[MAXGRID][MAXGRID];
     float posit[MAXGRID][MAXGRID];
-    float vertNorms[MAXGRID][MAXGRID][3];
-    float faceNorms[2][MAXGRID][MAXGRID][3];
-    float faceNormSegs[2][2][MAXGRID][MAXGRID][3];
     float texCoords[MAXGRID][MAXGRID][2];
 
 };

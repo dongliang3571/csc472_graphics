@@ -8,8 +8,6 @@
 // ===============================================================
 
 #include "MainWindow.h"
-#include "HW0a.h"
-#include "HW0b.h"
 #include "HW1a.h"
 #include "HW1b.h"
 #include "HW2a.h"
