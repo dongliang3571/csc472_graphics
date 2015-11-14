@@ -5,7 +5,6 @@
 #include <QGLShaderProgram>
 #include <QtOpenGL>
 
-ls
 
 #define MAXGRID 65
 
@@ -16,7 +15,7 @@ class HW3b : public HW {
 public:
     HW3b		(QWidget *parent = 0);		// constructor
     QGroupBox*	controlPanel	();		// create control panel
-    
+    void		reset		();
     void		initVertexBuffer();		// init vertices
     void		initShaders	();		// init shaders
     void		initTexture	();		// init texture image

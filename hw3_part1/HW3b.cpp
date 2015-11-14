@@ -18,9 +18,9 @@ HW3b::HW3b(QWidget *parent)
     dt=0.006;
     displayMode = TEX_WIRE;
     resetMode = HILLFOUR;
-    sphi=90.0;stheta=45.0;
-    sdepth = 5.0/4.0 * (grid+3);
-    zNear=1.0; zFar=140.0;
+    sphi=45.0;stheta=45.0;
+    sdepth = 1.5;
+    zNear=0.1; zFar=5.0;
     aspect = 5.0/4.0;
     timer = new QTimer(this);
     leftButton = false;
@@ -76,13 +76,16 @@ HW3b::controlPanel()
     m_spinboxGrid->setRange(2,64);
     m_spinboxGrid->setValue(16);
     
+    
     m_sliderSpeed = new QSlider(Qt::Horizontal);
     m_sliderSpeed->setRange(1, 20);
     m_sliderSpeed->setValue(6);
     
+    
     m_spinboxSpeed = new QSpinBox;
     m_spinboxSpeed->setRange(1,20);
     m_spinboxSpeed->setValue(6);
+    
     
     m_labelGrid = new QLabel("Grid");
     m_labelSpeed = new QLabel("Speed");
@@ -141,13 +144,14 @@ void HW3b::wave()
 
 void HW3b::displayChange(int index){
     
+    stopTimer();
     displayMode = index;
     updateGL();
     
 }
 
 void HW3b::selectMode(int index){
-    timer->stop();
+    stopTimer();
     resetMode = index;
     initPoints();
     initVertexBuffer();
@@ -157,10 +161,12 @@ void HW3b::selectMode(int index){
 
 void HW3b::setsize(int value)
 {
+    timer->stop();
     m_sliderGrid->setValue(value);
     m_spinboxGrid->setValue(value);
     grid = value+1;
-    sdepth = 5.0/4.0 * (grid+3);
+//    sdepth = 5.0/4.0 * (grid+3);
+//    sdepth = sdepth+0.6;
     initPoints();
     initPosition();
     initVertexBuffer();
@@ -171,10 +177,16 @@ void HW3b::setSpeed(int value)
 {
     m_spinboxSpeed->setValue(value);
     m_sliderSpeed->setValue(value);
-    stopTimer();
-    waving=false;
-    dt =float(value/1000.0);
-    timer->start(0);
+    timer->stop();
+    if (waving == true) {
+        dt =float(value/1000.0);
+        timer->start(0);
+        
+    }
+    else{
+        waving=false;
+        dt =float(value/1000.0);
+    }
 
 }
 
@@ -187,10 +199,11 @@ void HW3b::initializeGL()
     initPoints();
     initVertexBuffer();
     
-    glEnable(GL_DEPTH_TEST);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_BLEND);
     glEnable(GL_LINE_SMOOTH);
+//    glEnable(GL_CULL_FACE);
+    glEnable(GL_DEPTH_TEST);
     
     glClearColor(0.0, 0.0, 0.0, 0.0);	// set background color
     glColor3f   (1.0, 1.0, 0.0);		// set foreground color
@@ -299,7 +312,7 @@ void HW3b::initShader1()
     //
     m_ModelMatrix.rotate(-stheta, 1.0, 0.0, 0.0);
     m_ModelMatrix.rotate(sphi, 0.0, 0.0, 1.0);
-    m_ModelMatrix.translate(-(float)((grid+1)/2-1), -(float)((grid+1)/2-1), 0.0);
+    m_ModelMatrix.translate(-0.5, -0.5, 0.0);
     
     m_ViewMatrix.setToIdentity();
     m_ProjectMatrix.setToIdentity();
@@ -354,7 +367,7 @@ HW3b::initShader2()
     //
     m_ModelMatrix.rotate(-stheta, 1.0, 0.0, 0.0);
     m_ModelMatrix.rotate(sphi, 0.0, 0.0, 1.0);
-    m_ModelMatrix.translate(-(float)((grid+1)/2-1), -(float)((grid+1)/2-1), 0.0);
+    m_ModelMatrix.translate(-0.5, -0.5, 0.0);
     
     m_ViewMatrix.setToIdentity();
     m_ProjectMatrix.setToIdentity();
@@ -375,7 +388,7 @@ void HW3b::initPosition(){
     //
     m_ModelMatrix.rotate(-stheta, 1.0, 0.0, 0.0);
     m_ModelMatrix.rotate(sphi, 0.0, 0.0, 1.0);
-    m_ModelMatrix.translate(-(float)((grid+1)/2-1), -(float)((grid+1)/2-1), 0.0);
+    m_ModelMatrix.translate(-0.5, -0.5, 0.0);
     
     m_ViewMatrix.setToIdentity();
     m_ProjectMatrix.setToIdentity();
@@ -399,10 +412,10 @@ HW3b::initVertexBuffer()
     
     for (i=0; i<grid-1; i++) {
         for (j=0; j<grid-1; j++){
-            m_points.push_back(vec3(i,j,posit[i][j]));
-            m_points.push_back(vec3(i,j+1,posit[i][j+1]));
-            m_points.push_back(vec3(i+1,j+1,posit[i+1][j+1]));
-            m_points.push_back(vec3(i+1,j,posit[i+1][j]));
+            m_points.push_back(vec3(i/((float)grid-1)/1.0,j/((float)grid-1)/1.0,posit[i][j]/((float)grid-1)/1.0));
+            m_points.push_back(vec3(i/((float)grid-1)/1.0,(j+1)/((float)grid-1)/1.0,posit[i][j+1]/((float)grid-1)/1.0));
+            m_points.push_back(vec3((i+1)/((float)grid-1)/1.0,(j+1)/((float)grid-1)/1.0,posit[i+1][j+1]/((float)grid-1)/1.0));
+            m_points.push_back(vec3((i+1)/((float)grid-1)/1.0,j/((float)grid-1)/1.0,posit[i+1][j]/((float)grid-1)/1.0));
         }
     }
 
@@ -473,10 +486,8 @@ HW3b::resizeGL(int w, int h)
 
 void HW3b::paintGL()
 {
-    // clear canvas with background color
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // draw texture mapped triangles
     switch (displayMode) {
             
         case TEXTURED:
@@ -701,3 +712,26 @@ void HW3b::getTexCoords()
     }
 }
 
+void HW3b::reset (){
+    
+    timer->stop();
+    waving = false;
+    grid = 17;
+    dt=0.006;
+//    displayMode = TEX_WIRE;
+//    resetMode = HILLFOUR;
+    sphi=45.0;stheta=45.0;
+    sdepth = 1.5;
+    m_comboBox->setCurrentIndex(displayMode);
+    m_comboBox_mode->setCurrentIndex(resetMode);
+    m_spinboxSpeed->setValue(6);
+    m_sliderSpeed->setValue(6);
+    m_spinboxGrid->setValue(16);
+    m_sliderGrid->setValue(16);
+
+    initPoints();
+    initVertexBuffer();
+    
+ 
+    updateGL();
+}
