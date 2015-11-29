@@ -107,7 +107,7 @@ HW3b::controlPanel()
     connect(m_sliderGrid, SIGNAL(valueChanged(int)), this, SLOT(setsize(int)));
     connect(m_spinboxGrid, SIGNAL(valueChanged(int)), this, SLOT(setsize(int)));
     connect(m_sliderSpeed, SIGNAL(valueChanged(int)), this, SLOT(setSpeed(int)));
-    connect(m_spinboxSpeed, SIGNAL(valueChanged(int)), this, SLOT(setSpeed(int)));
+//    connect(m_spinboxSpeed, SIGNAL(valueChanged(int)), this, SLOT(setSpeed(int)));
 
     
     groupBox->setLayout(layout);
@@ -179,13 +179,13 @@ void HW3b::setSpeed(int value)
     m_sliderSpeed->setValue(value);
     timer->stop();
     if (waving == true) {
-        dt =float(value/1000.0);
+        dt =(float)value/1000.0;
         timer->start(0);
         
     }
     else{
         waving=false;
-        dt =float(value/1000.0);
+        dt =(float)value/1000.0;
     }
 
 }
@@ -427,7 +427,7 @@ HW3b::initVertexBuffer()
     
     glBufferData(GL_ARRAY_BUFFER, m_numPoints*sizeof(vec3), &m_points[0], GL_STATIC_DRAW);
     glVertexAttribPointer(ATTRIB_VERTEX, 3, GL_FLOAT, GL_FALSE, 0, NULL);
-    glEnableVertexAttribArray(ATTRIB_VERTEX);
+    glEnableVertexAttribArray(ATTRIB_VERTEX); 
 
     getTexCoords();
     
@@ -487,8 +487,11 @@ HW3b::resizeGL(int w, int h)
 void HW3b::paintGL()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+    glEnable(GL_POLYGON_OFFSET_FILL);
+    glPolygonOffset(1, 1);
+//    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     switch (displayMode) {
+            
             
         case TEXTURED:
             glUseProgram(m_program[0].programId());
@@ -555,7 +558,7 @@ void HW3b::initPoints()
                      sin(M_PI*2 * ((float)j/(float)grid)))* grid/6.0;
                     break;
             }
-            if (i==0||j==0||i==grid-1||j==grid-1) posit[i][j]=0.0;
+//            if (i==0||j==0||i==grid-1||j==grid-1) posit[i][j]=0.0;
         }
     }
 
@@ -602,8 +605,8 @@ void HW3b::getforce()
         for(int j=0;j<grid;j++)
             force[i][j]=0.0;
 
-    for(int i=2;i<grid-2;i++) {
-        for(int j=2;j<grid-2;j++) {
+    for(int i=1;i<grid-1;i++) {
+        for(int j=1;j<grid-1;j++) {
             d = posit[i][j]-posit[i][j-1];
             force[i][ j ] -= d;
             force[i][j-1] += d;
@@ -728,7 +731,7 @@ void HW3b::reset (){
     m_sliderSpeed->setValue(6);
     m_spinboxGrid->setValue(16);
     m_sliderGrid->setValue(16);
-
+    initPosition();
     initPoints();
     initVertexBuffer();
     
