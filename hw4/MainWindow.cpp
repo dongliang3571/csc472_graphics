@@ -14,6 +14,7 @@
 #include "HW2b.h"
 #include "HW3a.h"
 #include "HW3b.h"
+#include "HW4.h"
 
 QString GroupBoxStyle = "QGroupBox {				\
 			border: 2px solid gray;			\
@@ -73,15 +74,16 @@ MainWindow::createWidgets()
 {
 	// create list of hw names; m_hwName name will be used for
 	// tab name and as key for class in m_hw container
-    m_hwName << "HW 3b" << "HW 3a" << "HW 2b" << "HW 2a" << "HW 1b" << "HW 1a";
+    m_hwName <<"HW 4" << "HW 3b" << "HW 3a" << "HW 2b" << "HW 2a" << "HW 1b" << "HW 1a";
 
 	// instantiate homework solution classes
-	m_hw[m_hwName[0]] = new HW3b;
-	m_hw[m_hwName[1]] = new HW3a;
-	m_hw[m_hwName[2]] = new HW2b;
-	m_hw[m_hwName[3]] = new HW2a;
-    m_hw[m_hwName[4]] = new HW1b;
-    m_hw[m_hwName[5]] = new HW1a;
+    m_hw[m_hwName[0]] = new HW4;
+    m_hw[m_hwName[1]] = new HW3b;
+    m_hw[m_hwName[2]] = new HW3a;
+    m_hw[m_hwName[3]] = new HW2b;
+    m_hw[m_hwName[4]] = new HW2a;
+    m_hw[m_hwName[5]] = new HW1b;
+    m_hw[m_hwName[6]] = new HW1a;
 
 	// add control panels to stacked widget
 	for(int i = 0; i < (int) m_hwName.size(); i++)

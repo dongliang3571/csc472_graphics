@@ -11,3 +11,5 @@ moc
 obj
 qrc_resources.cpp
 
+build*
+
