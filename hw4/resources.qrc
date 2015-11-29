@@ -1,0 +1,19 @@
+<RCC>
+    <qresource prefix="/">
+        <file>fshader2a.glsl</file>
+        <file>vshader2a.glsl</file>
+        <file>vshader2b.glsl</file>
+        <file>fshader2b.glsl</file>
+        <file>mandrill.jpg</file>
+        <file>vshader3a1.glsl</file>
+        <file>fshader3a1.glsl</file>
+        <file>vshader3a2.glsl</file>
+        <file>fshader3a2.glsl</file>
+        <file>fshader3b1.glsl</file>
+        <file>fshader3b2.glsl</file>
+        <file>vshader3b1.glsl</file>
+        <file>vshader3b2.glsl</file>
+        <file>envmap.ppm</file>
+        <file>texmap.ppm</file>
+    </qresource>
+</RCC>
