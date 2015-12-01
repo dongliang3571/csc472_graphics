@@ -21,7 +21,8 @@ typedef QVector3D vec3;
 enum {
 	ATTRIB_VERTEX,
 	ATTRIB_COLOR,
-	ATTRIB_TEXTURE_POSITION
+    ATTRIB_TEXTURE_POSITION,
+    ATTRIB_NORMAL
 };
 
 // ----------------------------------------------------------------------

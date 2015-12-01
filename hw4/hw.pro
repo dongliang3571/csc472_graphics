@@ -40,3 +40,5 @@ SOURCES += main.cpp MainWindow.cpp \
 
 RESOURCES += \
     resources.qrc
+
+DISTFILES +=

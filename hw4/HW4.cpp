@@ -3,8 +3,8 @@
 
 #include "HW4.h"
 
-enum {MVP, VIEWMATRIX, PROJECTMATRIX, SAMPLER};
-enum {TEXTURED, WIREFRAME, TEX_WIRE};
+enum {MVP, VIEWMATRIX, PROJECTMATRIX, SAMPLER, AMBIENT, DIFFUSE, SPECULAR, LIGHT, SHININESS, NOR, NORMALMATRIX};
+enum {TEXTURED, WIREFRAME, TEX_WIRE, FLAT_SHADING, SMOOTH_SHADING, SMOOTH_SHADING_TEX};
 enum {FLAT, SPIKE, DIAGONALWALL, SIDEWALL, HOLE,
     MIDDLEBLOCK, DIAGONALBLOCK, CORNERBLOCK, HILL, HILLFOUR};
 #define SQRTOFTWOINV 1.0 / 1.414213562
@@ -17,9 +17,9 @@ HW4::HW4(QWidget *parent)
     waving = false;
     grid = 17;
     dt=0.006;
-    displayMode = TEX_WIRE;
+    displayMode = FLAT_SHADING;
     resetMode = HILLFOUR;
-    sphi=45.0;stheta=45.0;
+    sphi=0.0;stheta=0.0;
     sdepth = 1.5;
     zNear=0.1; zFar=5.0;
     aspect = 5.0/4.0;
@@ -28,6 +28,14 @@ HW4::HW4(QWidget *parent)
 
     connect(timer, SIGNAL(timeout()), this, SLOT(wave()));
 
+
+    //hw4
+
+    shininess = 3.0;
+    a_color = vec3(0.8f, 0.2f, 0.8f);
+    ambient = vec3(0.2f, 0.2f, 0.2f);
+    lightcolor = vec3(1.0, 1.0, 1.0);
+    lightDirection = vec3(0.0, 0.0, 1.0);
 }
 
 
@@ -36,7 +44,7 @@ QGroupBox*
 HW4::controlPanel()
 {
     // init group box
-    QGroupBox *groupBox = new QGroupBox("Homework 3a");
+    QGroupBox *groupBox = new QGroupBox("Homework 4");
 
     groupBox->setMinimumWidth(300);
     QGridLayout *layout = new QGridLayout;
@@ -44,7 +52,10 @@ HW4::controlPanel()
     m_comboBox->addItem("Texture");
     m_comboBox->addItem("Wireframe");
     m_comboBox->addItem("Tex+Wire");
-    m_comboBox->setCurrentIndex(TEX_WIRE);
+    m_comboBox->addItem("Flat_Shading");
+    m_comboBox->addItem("Smooth_Shading");
+    m_comboBox->addItem("Smooth_Shading_Tex");
+    m_comboBox->setCurrentIndex(FLAT_SHADING);
 
 
     m_comboBox_mode = new QComboBox();
@@ -207,7 +218,7 @@ void HW4::initializeGL()
     glEnable(GL_DEPTH_TEST);
 
     glClearColor(0.0, 0.0, 0.0, 0.0);	// set background color
-    glColor3f   (1.0, 1.0, 0.0);		// set foreground color
+    glColor3f(0.8, 0.2, 0.8);		// set foreground color
 }
 
 void HW4::initTexture()
@@ -261,8 +272,10 @@ void HW4::initTexture()
 void
 HW4::initShaders()
 {
+
     initShader1();
     initShader2();
+    initShader3();
 }
 
 void HW4::initShader1()
@@ -382,6 +395,141 @@ HW4::initShader2()
 
 }
 
+void
+HW4::initShader3()
+{
+    // compile vertex shader
+    if(!m_program[2].addShaderFromSourceFile(QGLShader::Vertex, ":/vshader4_per_vertex.glsl")) {
+        QMessageBox::critical(0, "Error", "Vertex shader error", QMessageBox::Ok);
+        QApplication::quit();
+    }
+
+    // compile fragment shader
+    if(!m_program[2].addShaderFromSourceFile(QGLShader::Fragment, ":/fshader4_per_vertex.glsl")) {
+        QMessageBox::critical(0, "Error", "Fragment shader error",QMessageBox::Ok);
+        QApplication::quit();
+    }
+
+    glBindAttribLocation(m_program[2].programId(), ATTRIB_VERTEX, "a_Position");
+    glBindAttribLocation(m_program[2].programId(), ATTRIB_NORMAL, "vNormal");
+
+    if(!m_program[2].link()) {
+        QMessageBox::critical(0, "Error", "Could not link shader", QMessageBox::Ok);
+        QApplication::quit();
+    }
+
+    // get storage location of u_ModelMatrix in vertex shader
+    m_uniform[2][MVP] = glGetUniformLocation(m_program[2].programId(), "u_MVPMatrix");
+    if((int) m_uniform[2][MVP] < 0) {
+        qDebug() << "Failed to get the storage location of u_MVPMatrix";
+        exit(-1);
+    }
+
+
+    m_uniform[2][VIEWMATRIX] = glGetUniformLocation(m_program[2].programId(), "ModelView");
+    if((int) m_uniform[2][VIEWMATRIX] < 0) {
+        qDebug() << "Failed to get the storage location of ModelView";
+        exit(-1);
+    }
+
+
+    m_uniform[2][AMBIENT] = glGetUniformLocation(m_program[2].programId(), "AmbientProduct");
+    if((int) m_uniform[2][AMBIENT] < 0) {
+        qDebug() << "Failed to get the storage location of AmbientProduct";
+        exit(-1);
+    }
+
+    m_uniform[2][DIFFUSE] = glGetUniformLocation(m_program[2].programId(), "DiffuseProduct");
+    if((int) m_uniform[2][DIFFUSE] < 0) {
+        qDebug() << "Failed to get the storage location of DiffuseProduct";
+        exit(-1);
+    }
+
+    m_uniform[2][SPECULAR] = glGetUniformLocation(m_program[2].programId(), "SpecularProduct");
+    if((int) m_uniform[2][SPECULAR] < 0) {
+        qDebug() << "Failed to get the storage location of SpecularProduct";
+        exit(-1);
+    }
+
+    m_uniform[2][LIGHT] = glGetUniformLocation(m_program[2].programId(), "LightPosition");
+    if((int) m_uniform[2][LIGHT] < 0) {
+        qDebug() << "Failed to get the storage location of lightPosition";
+        exit(-1);
+    }
+
+    m_uniform[2][SHININESS] = glGetUniformLocation(m_program[2].programId(), "Shininess");
+    if((int) m_uniform[2][SHININESS] < 0) {
+        qDebug() << "Failed to get the storage location of Shininess";
+        exit(-1);
+    }
+
+//    m_uniform[2][NOR] = glGetUniformLocation(m_program[2].programId(), "vNormal");
+//    if((int) m_uniform[2][NOR] < 0) {
+//        qDebug() << "Failed to get the storage location of AmbienProduct";
+//        exit(-1);
+//    }
+
+    m_uniform[2][NORMALMATRIX] = glGetUniformLocation(m_program[2].programId(), "NormalMatrix");
+    if((int) m_uniform[2][NORMALMATRIX] < 0) {
+        qDebug() << "Failed to get the storage location of NormalMatrix";
+        exit(-1);
+    }
+
+
+    // bind the glsl program
+    glUseProgram(m_program[2].programId());
+
+    m_ModelMatrix.setToIdentity();
+    m_ModelMatrix.translate(0.0,0.0,-sdepth);
+    //
+    m_ModelMatrix.rotate(-stheta, 1.0, 0.0, 0.0);
+    m_ModelMatrix.rotate(sphi, 0.0, 0.0, 1.0);
+    m_ModelMatrix.translate(-0.5, -0.5, 0.0);
+
+    glUniformMatrix4fv(m_uniform[2][VIEWMATRIX], 1, GL_FALSE, m_ModelMatrix.constData());
+    //normal matrix
+    QMatrix4x4 tem_matrix = m_ModelMatrix;
+    m_NormalMatrix = tem_matrix.inverted();
+    glUniformMatrix4fv(m_uniform[2][NORMALMATRIX], 1, GL_TRUE, m_NormalMatrix.constData());
+    m_ViewMatrix.setToIdentity();
+    m_ProjectMatrix.setToIdentity();
+    m_ProjectMatrix.perspective(64.0, aspect, zNear, zFar);
+
+    m_ModelMatrix = m_ViewMatrix * m_ModelMatrix;
+    m_ModelMatrix = m_ProjectMatrix * m_ModelMatrix;
+
+
+    glUniformMatrix4fv(m_uniform[2][MVP], 1, GL_FALSE, m_ModelMatrix.constData());
+
+    //ambient
+    ambientProduct = ambient * a_color;
+    glUniform3f(m_uniform[2][AMBIENT], ambientProduct.x(), ambientProduct.y(), ambientProduct.z());
+
+    //diffuse
+    diffuseProduct = lightcolor * a_color;
+    glUniform3f(m_uniform[2][DIFFUSE], diffuseProduct.x(), diffuseProduct.y(), diffuseProduct.z());
+
+    specularProduct = lightcolor * a_color;
+    glUniform3f(m_uniform[2][SPECULAR], diffuseProduct.x(), diffuseProduct.y(), diffuseProduct.z());
+
+    //light direction
+    glUniform3f(m_uniform[2][LIGHT], lightDirection.x(), lightDirection.y(),lightDirection.z());
+
+
+    //Shininess
+    glUniform1f(m_uniform[2][SHININESS],shininess);
+
+//    glUniform4f(m_uniform[2][NOR], 0.0, 0.0 ,1.0, 0.0);
+
+
+
+
+
+}
+
+
+
+
 void HW4::initPosition(){
 
     m_ModelMatrix.setToIdentity();
@@ -391,16 +539,26 @@ void HW4::initPosition(){
     m_ModelMatrix.rotate(sphi, 0.0, 0.0, 1.0);
     m_ModelMatrix.translate(-0.5, -0.5, 0.0);
 
+    glUseProgram(m_program[2].programId());
+    QMatrix4x4 tem_matrix = m_ModelMatrix;
+    m_NormalMatrix = tem_matrix.inverted();
+    glUniformMatrix4fv(m_uniform[2][NORMALMATRIX], 1, GL_TRUE, m_NormalMatrix.constData());
+
     m_ViewMatrix.setToIdentity();
     m_ProjectMatrix.setToIdentity();
     m_ProjectMatrix.perspective(64.0, aspect, zNear, zFar);
 
     m_ModelMatrix = m_ViewMatrix * m_ModelMatrix;
     m_ModelMatrix = m_ProjectMatrix * m_ModelMatrix;
+
+
+
+    glUniformMatrix4fv(m_uniform[2][MVP], 1, GL_FALSE, m_ModelMatrix.constData());
     glUseProgram(m_program[1].programId());
     glUniformMatrix4fv(m_uniform[1][MVP], 1, GL_FALSE, m_ModelMatrix.constData());
     glUseProgram(m_program[0].programId());
     glUniformMatrix4fv(m_uniform[0][MVP], 1, GL_FALSE, m_ModelMatrix.constData());
+
 }
 
 
@@ -411,12 +569,23 @@ HW4::initVertexBuffer()
 
     int i,j;
 
+//    for (i=0; i<grid-1; i++) {
+//        for (j=0; j<grid-1; j++){
+//            m_points.push_back(vec3(i/((float)grid-1)/1.0,j/((float)grid-1)/1.0,posit[i][j]/((float)grid-1)/1.0));
+//            m_points.push_back(vec3(i/((float)grid-1)/1.0,(j+1)/((float)grid-1)/1.0,posit[i][j+1]/((float)grid-1)/1.0));
+//            m_points.push_back(vec3((i+1)/((float)grid-1)/1.0,(j+1)/((float)grid-1)/1.0,posit[i+1][j+1]/((float)grid-1)/1.0));
+//            m_points.push_back(vec3((i+1)/((float)grid-1)/1.0,j/((float)grid-1)/1.0,posit[i+1][j]/((float)grid-1)/1.0));
+//        }
+//    }
+
     for (i=0; i<grid-1; i++) {
         for (j=0; j<grid-1; j++){
-            m_points.push_back(vec3(i/((float)grid-1)/1.0,j/((float)grid-1)/1.0,posit[i][j]/((float)grid-1)/1.0));
             m_points.push_back(vec3(i/((float)grid-1)/1.0,(j+1)/((float)grid-1)/1.0,posit[i][j+1]/((float)grid-1)/1.0));
-            m_points.push_back(vec3((i+1)/((float)grid-1)/1.0,(j+1)/((float)grid-1)/1.0,posit[i+1][j+1]/((float)grid-1)/1.0));
+            m_points.push_back(vec3(i/((float)grid-1)/1.0,(j)/((float)grid-1)/1.0,posit[i][j]/((float)grid-1)/1.0));
             m_points.push_back(vec3((i+1)/((float)grid-1)/1.0,j/((float)grid-1)/1.0,posit[i+1][j]/((float)grid-1)/1.0));
+            m_points.push_back(vec3(i/((float)grid-1)/1.0,(j+1)/((float)grid-1)/1.0,posit[i][j+1]/((float)grid-1)/1.0));
+            m_points.push_back(vec3((i+1)/((float)grid-1)/1.0,j/((float)grid-1)/1.0,posit[i+1][j]/((float)grid-1)/1.0));
+            m_points.push_back(vec3((i+1)/((float)grid-1)/1.0,(j+1)/((float)grid-1)/1.0,posit[i+1][j+1]/((float)grid-1)/1.0));
         }
     }
 
@@ -432,16 +601,30 @@ HW4::initVertexBuffer()
 
     getTexCoords();
 
+//    for (i=0; i<grid-1; i++) {
+//        for (j=0; j<grid-1; j++){
+//            m_coords.push_back(vec2(texCoords[i][j][0],texCoords[i][j][1]));
+//            m_coords.push_back(vec2(texCoords[i][j+1][0],texCoords[i][j+1][1]));
+//            m_coords.push_back(vec2(texCoords[i+1][j+1][0],texCoords[i+1][j+1][1]));
+//            m_coords.push_back(vec2(texCoords[i+1][j][0],texCoords[i+1][j][1]));
+
+
+//        }
+//    }
+
     for (i=0; i<grid-1; i++) {
         for (j=0; j<grid-1; j++){
-            m_coords.push_back(vec2(texCoords[i][j][0],texCoords[i][j][1]));
             m_coords.push_back(vec2(texCoords[i][j+1][0],texCoords[i][j+1][1]));
-            m_coords.push_back(vec2(texCoords[i+1][j+1][0],texCoords[i+1][j+1][1]));
+            m_coords.push_back(vec2(texCoords[i][j][0],texCoords[i][j][1]));
             m_coords.push_back(vec2(texCoords[i+1][j][0],texCoords[i+1][j][1]));
+            m_coords.push_back(vec2(texCoords[i][j+1][0],texCoords[i][j+1][1]));
+            m_coords.push_back(vec2(texCoords[i+1][j][0],texCoords[i+1][j][1]));
+            m_coords.push_back(vec2(texCoords[i+1][j+1][0],texCoords[i+1][j+1][1]));
 
 
         }
     }
+
     //Create texture coordinates buffer
     static GLuint texCoordBuffer = -1;
     glGenBuffers(1, &texCoordBuffer);
@@ -450,8 +633,41 @@ HW4::initVertexBuffer()
     glVertexAttribPointer(ATTRIB_TEXTURE_POSITION, 2, GL_FLOAT, GL_FALSE, 0, NULL);
     glEnableVertexAttribArray(ATTRIB_TEXTURE_POSITION);
 
+
+    for (i=0; i<grid-1; i++) {
+        for (j=0; j<grid-1; j++){
+            vec3 vector1 = vec3(i/((float)grid-1)/1.0,(j)/((float)grid-1)/1.0,posit[i][j]/((float)grid-1)/1.0) -
+                    vec3(i/((float)grid-1)/1.0,(j+1)/((float)grid-1)/1.0,posit[i][j+1]/((float)grid-1)/1.0);
+            vec3 vector2 = vec3((i+1)/((float)grid-1)/1.0,j/((float)grid-1)/1.0,posit[i+1][j]/((float)grid-1)/1.0) -
+                    vec3(i/((float)grid-1)/1.0,(j+1)/((float)grid-1)/1.0,posit[i][j+1]/((float)grid-1)/1.0);
+            vec3 normal1 = vector1 * vector2;
+            vec3 vector3 = vec3((i+1)/((float)grid-1)/1.0,(j+1)/((float)grid-1)/1.0,posit[i+1][j+1]/((float)grid-1)/1.0) -
+                    vec3(i/((float)grid-1)/1.0,(j+1)/((float)grid-1)/1.0,posit[i][j+1]/((float)grid-1)/1.0);
+
+            vec3 normal2 = vector2 * vector3;
+
+            m_normals.push_back(normal1);
+            m_normals.push_back(normal1);
+            m_normals.push_back(normal1);
+            m_normals.push_back(normal2);
+            m_normals.push_back(normal2);
+            m_normals.push_back(normal2);
+
+        }
+    }
+
+
+
+    static GLuint normalBuffer = -1;
+    glGenBuffers(1, &normalBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, normalBuffer);
+    glBufferData(GL_ARRAY_BUFFER, m_numPoints*sizeof(vec3), &m_normals[0], GL_STATIC_DRAW);
+    glVertexAttribPointer(ATTRIB_NORMAL, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+    glEnableVertexAttribArray(ATTRIB_NORMAL);
+
     m_points.clear();
     m_coords.clear();
+    m_normals.clear();
 
 }
 
@@ -513,6 +729,20 @@ void HW4::paintGL()
             for(int i=0; i<(int)m_numPoints; i+=4)
                 glDrawArrays(GL_LINE_LOOP, i, (GLsizei) 4);
             break;
+         case FLAT_SHADING:
+            glUseProgram(m_program[2].programId());		// bind the glsl progam
+//            glLineWidth(2.0f);
+            for(int i=0; i<(int)m_numPoints; i+=3)
+                glDrawArrays(GL_TRIANGLES, i, (GLsizei) 3);
+            break;
+         case SMOOTH_SHADING:
+            glUseProgram(m_program[1].programId());		// bind the glsl progam
+            glLineWidth(2.0f);
+            break;
+         case SMOOTH_SHADING_TEX:
+            glUseProgram(m_program[1].programId());		// bind the glsl progam
+            glLineWidth(2.0f);
+            break;
     }
 }
 
@@ -559,7 +789,7 @@ void HW4::initPoints()
                      sin(M_PI*2 * ((float)j/(float)grid)))* grid/6.0;
                     break;
             }
-//            if (i==0||j==0||i==grid-1||j==grid-1) posit[i][j]=0.0;
+            if (i==0||j==0||i==grid-1||j==grid-1) posit[i][j]=0.0;
         }
     }
 

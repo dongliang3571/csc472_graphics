@@ -15,5 +15,9 @@
         <file>vshader3b2.glsl</file>
         <file>envmap.ppm</file>
         <file>texmap.ppm</file>
+        <file>fshader4_per_fragment.glsl</file>
+        <file>fshader4_per_vertex.glsl</file>
+        <file>vshader4_per_fragment.glsl</file>
+        <file>vshader4_per_vertex.glsl</file>
     </qresource>
 </RCC>

@@ -52,6 +52,7 @@ protected:
 
     void		initShader1	();		// texture mapping shader
     void		initShader2	();		// wireframe rendering shader
+    void        initShader3 ();
 
     void        initPosition();
 
@@ -63,7 +64,7 @@ protected:
 private:
     int		  m_winW;			// window width
     int		  m_winH;			// window height
-    QGLShaderProgram  m_program[2];			// GLSL programs
+    QGLShaderProgram  m_program[3];			// GLSL programs
 
 
     std::vector<vec3> m_points;			// vector of 2D points (XY)
@@ -74,6 +75,7 @@ private:
 
     QMatrix4x4	  m_ViewMatrix;
     QMatrix4x4	  m_ProjectMatrix;
+    QMatrix4x4	  m_NormalMatrix;
 
     QPushButton   *m_PushbottonGo;
     QPushButton   *m_PushbottonStop;
@@ -90,7 +92,7 @@ private:
 
     QImage		  m_image;			// texture image
     GLuint		  m_texture;			// shader index to texture unit
-    GLuint		  m_uniform[2][16];		// uniform vars for two shaders and <16 vars
+    GLuint		  m_uniform[3][16];		// uniform vars for two shaders and <16 vars
 
 
     //members from demo
@@ -115,6 +117,23 @@ private:
     float veloc[MAXGRID][MAXGRID];
     float posit[MAXGRID][MAXGRID];
     float texCoords[MAXGRID][MAXGRID][2];
+
+
+    // for hw4
+
+    float shininess;
+    vec3 a_color;
+    vec3 lightcolor;
+    vec3 ambient;
+    vec3 ambientProduct;
+    vec3 diffuseProduct;
+    vec3 specularProduct;
+
+    vec3 lightDirection;
+
+    std::vector<vec3> m_normals;
+
+
 
 };
 
