@@ -707,7 +707,7 @@ void HW4::initShader5()
 
     glBindAttribLocation(m_program[4].programId(), ATTRIB_VERTEX, "a_Position");
     glBindAttribLocation(m_program[4].programId(), ATTRIB_VECTOR_NORMAL, "vNormal");
-    glBindAttribLocation(m_program[4].programId(), ATTRIB_COLOR, "a_Color");
+//    glBindAttribLocation(m_program[4].programId(), ATTRIB_COLOR, "a_Color");
     glBindAttribLocation(m_program[4].programId(), ATTRIB_TEXTURE_POSITION, "a_TexCoord");
 
     if(!m_program[4].link()) {

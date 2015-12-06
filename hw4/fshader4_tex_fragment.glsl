@@ -3,7 +3,7 @@ uniform sampler2D u_Sampler;
 
 varying vec3 position;
 varying vec3 normal;
-varying vec4 color;
+//varying vec4 color;
 uniform vec3 AmbientLight;
 //uniform vec3 DiffuseLight;
 //uniform vec3 SpecularLight;
@@ -21,7 +21,6 @@ void main(){
         float nDotL = max(dot(L, normal),0.0);
         vec3 E = -position;
         vec3 H = normalize(L + E);
-        vec4 haha = color;
         float Ks = pow(max(dot(N, H), 0.0),Shininess);
         vec3 diffuse = u_LightColor * texture2D(u_Sampler,v_TexCoord).rgb * nDotL;
         vec3 ambient = AmbientLight * texture2D(u_Sampler,v_TexCoord).rgb;
