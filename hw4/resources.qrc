@@ -19,5 +19,7 @@
         <file>fshader4_per_vertex.glsl</file>
         <file>vshader4_per_fragment.glsl</file>
         <file>vshader4_per_vertex.glsl</file>
+        <file>fshader4_tex_fragment.glsl</file>
+        <file>vshader4_tex_fragment.glsl</file>
     </qresource>
 </RCC>

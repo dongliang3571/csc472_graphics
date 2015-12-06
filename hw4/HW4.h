@@ -35,6 +35,11 @@ public:
     void        set(float vec[3], float x, float y, float z);
     void        getTexCoords();
 
+    //hw4
+
+    void        getFaceNorms();
+    void        getVertNorms();
+
 
 public slots:
     void        wave();
@@ -53,6 +58,8 @@ protected:
     void		initShader1	();		// texture mapping shader
     void		initShader2	();		// wireframe rendering shader
     void        initShader3 ();
+    void        initShader4 ();
+    void        initShader5 ();
 
     void        initPosition();
 
@@ -64,7 +71,7 @@ protected:
 private:
     int		  m_winW;			// window width
     int		  m_winH;			// window height
-    QGLShaderProgram  m_program[3];			// GLSL programs
+    QGLShaderProgram  m_program[5];			// GLSL programs
 
 
     std::vector<vec3> m_points;			// vector of 2D points (XY)
@@ -92,7 +99,7 @@ private:
 
     QImage		  m_image;			// texture image
     GLuint		  m_texture;			// shader index to texture unit
-    GLuint		  m_uniform[3][16];		// uniform vars for two shaders and <16 vars
+    GLuint		  m_uniform[5][16];		// uniform vars for two shaders and <16 vars
 
 
     //members from demo
@@ -119,6 +126,10 @@ private:
     float texCoords[MAXGRID][MAXGRID][2];
 
 
+    float vertNorms[MAXGRID][MAXGRID][3];
+    float faceNorms[2][MAXGRID][MAXGRID][3];
+
+
     // for hw4
 
     float shininess;
@@ -132,6 +143,10 @@ private:
     vec3 lightDirection;
 
     std::vector<vec3> m_normals;
+    std::vector<vec3> m_average_normals;
+    std::vector<vec3> m_colors;
+
+
 
 
 

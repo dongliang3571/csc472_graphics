@@ -1,29 +1,29 @@
-// Fragment Shader
-// per-fragment interpolated values from the vertex shader
-varying vec3 fN;
-varying vec3 fL;
-varying vec3 fE;
-uniform vec4 AmbientProduct, DiffuseProduct, SpecularProduct;
-uniform mat4 ModelView;
-uniform vec4 LightPosition;
+varying vec3 position;
+varying vec3 normal;
+varying vec4 color;
+uniform vec3 AmbientLight;
+//uniform vec3 DiffuseLight;
+//uniform vec3 SpecularLight;
+//uniform mat4 ModelView;
+uniform vec3 LightPosition;
 uniform float Shininess;
+
+uniform vec3 u_LightColor;
+
+
+
 void main()
 {
     // normalize the input lighting vectors
-    vec3 N = normalize(fN);
-    vec3 E = normalize(fE);
-    vec3 L = normalize(fL);
+    vec3 N = normalize(normal);
+    vec3 L = normalize(LightPosition-position);
+    float nDotL = max(dot(L, normal),0.0);
+    vec3 E = -position;
+    vec3 H = normalize(L + E);
 
-    vec3 H = normalize( L + E );
-    vec4 ambient = AmbientProduct;
-    float Kd = max(dot(L, N), 0.0);
-    vec4 diffuse = Kd*DiffuseProduct;
-    float Ks = pow(max(dot(N, H), 0.0), Shininess);
-    vec4 specular = Ks*SpecularProduct;
-    // discard the specular highlight if the light
-    // is behind the vertex
-    if( dot(L, N) < 0.0 )
-    specular = vec4(0.0, 0.0, 0.0, 1.0);
-    gl_FragColor = ambient + diffuse + specular;
-    gl_FragColor.a = 1.0;
+    float Ks = pow(max(dot(N, H), 0.0),Shininess);
+    vec3 diffuse = u_LightColor * color.rgb * nDotL;
+    vec3 ambient = AmbientLight * color.rgb;
+    vec3 specular = u_LightColor * color.rgb * Ks ;
+    gl_FragColor = vec4(diffuse + ambient + specular, color.a);
 }

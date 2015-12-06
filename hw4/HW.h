@@ -22,7 +22,8 @@ enum {
 	ATTRIB_VERTEX,
 	ATTRIB_COLOR,
     ATTRIB_TEXTURE_POSITION,
-    ATTRIB_NORMAL
+    ATTRIB_NORMAL,
+    ATTRIB_VECTOR_NORMAL
 };
 
 // ----------------------------------------------------------------------

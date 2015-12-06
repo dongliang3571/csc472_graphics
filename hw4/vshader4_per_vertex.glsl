@@ -21,17 +21,14 @@ void main()
     vec3 E = normalize( -pos.xyz );
     vec3 H = normalize( L + E );
     // transform vertex normal into eye coordinates
-    //vec3 N = normalize( ModelView*vec4(vNormal, 0.0) ).xyz;
 
-    // compute terms in the illumination equation
-    // ambient lighting term
 
     vec3 N = normalize(vec3(NormalMatrix * vNormal));
-//    vec3 L = normalize(LightPosition);
+
     float nDotL = max(dot(L, N), 0.0);
     vec3 ambient = AmbientProduct;
     // diffuse lighting term
-    //float Kd = max( dot(L, N), 0.0 );
+
     vec3 diffuse = DiffuseProduct * nDotL;
     // specular lighting term
     float Ks = pow( max(dot(N, H), 0.0), Shininess );
