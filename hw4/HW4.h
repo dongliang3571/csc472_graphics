@@ -40,6 +40,9 @@ public:
     void        getFaceNorms();
     void        getVertNorms();
 
+    void        recomputeVertex1();
+    void        recomputeVertex2();
+
 
 public slots:
     void        wave();
@@ -145,6 +148,9 @@ private:
     std::vector<vec3> m_normals;
     std::vector<vec3> m_average_normals;
     std::vector<vec3> m_colors;
+    std::vector<vec3> m_lines;
+
+    size_t linenumber;
 
 
 

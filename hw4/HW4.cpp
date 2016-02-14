@@ -19,7 +19,7 @@ HW4::HW4(QWidget *parent)
     dt=0.006;
     displayMode = FLAT_SHADING;
     resetMode = HILLFOUR;
-    sphi=0.0;stheta=0.0;
+    sphi=45.0;stheta=45.0;
     sdepth = 1.5;
     zNear=0.1; zFar=5.0;
     aspect = 5.0/4.0;
@@ -1057,6 +1057,59 @@ HW4::resizeGL(int w, int h)
     glOrtho(-xmax, xmax, -ymax, ymax, -1.0, 1.0);
 }
 
+void HW4::recomputeVertex1(){
+        int i, j;
+        for (i=0; i<grid-1; i++) {
+            for (j=0; j<grid-1; j++){
+                m_points.push_back(vec3(i/((float)grid-1)/1.0,j/((float)grid-1)/1.0,posit[i][j]/((float)grid-1)/1.0));
+                m_points.push_back(vec3(i/((float)grid-1)/1.0,(j+1)/((float)grid-1)/1.0,posit[i][j+1]/((float)grid-1)/1.0));
+                m_points.push_back(vec3((i+1)/((float)grid-1)/1.0,(j+1)/((float)grid-1)/1.0,posit[i+1][j+1]/((float)grid-1)/1.0));
+                m_points.push_back(vec3((i+1)/((float)grid-1)/1.0,j/((float)grid-1)/1.0,posit[i+1][j]/((float)grid-1)/1.0));
+            }
+        }
+
+        m_numPoints = m_points.size();	// save number of vertices
+
+        static GLuint vertexBuffer = -1;
+        glGenBuffers(1, &vertexBuffer);
+        glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+
+        glBufferData(GL_ARRAY_BUFFER, m_numPoints*sizeof(vec3), &m_points[0], GL_STATIC_DRAW);
+        glVertexAttribPointer(ATTRIB_VERTEX, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+        glEnableVertexAttribArray(ATTRIB_VERTEX);
+
+        m_points.clear();
+}
+
+void HW4::recomputeVertex2(){
+    int i, j;
+    for (i=0; i<grid-1; i++) {
+        for (j=0; j<grid-1; j++){
+            m_points.push_back(vec3(i/((float)grid-1)/1.0,(j+1)/((float)grid-1)/1.0,posit[i][j+1]/((float)grid-1)/1.0));
+            m_points.push_back(vec3(i/((float)grid-1)/1.0,(j)/((float)grid-1)/1.0,posit[i][j]/((float)grid-1)/1.0));
+            m_points.push_back(vec3((i+1)/((float)grid-1)/1.0,j/((float)grid-1)/1.0,posit[i+1][j]/((float)grid-1)/1.0));
+            m_points.push_back(vec3(i/((float)grid-1)/1.0,(j+1)/((float)grid-1)/1.0,posit[i][j+1]/((float)grid-1)/1.0));
+            m_points.push_back(vec3((i+1)/((float)grid-1)/1.0,j/((float)grid-1)/1.0,posit[i+1][j]/((float)grid-1)/1.0));
+            m_points.push_back(vec3((i+1)/((float)grid-1)/1.0,(j+1)/((float)grid-1)/1.0,posit[i+1][j+1]/((float)grid-1)/1.0));
+        }
+    }
+
+
+    m_numPoints = m_points.size();	// save number of vertices
+
+    static GLuint vertexBuffer = -1;
+    glGenBuffers(1, &vertexBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+
+    glBufferData(GL_ARRAY_BUFFER, m_numPoints*sizeof(vec3), &m_points[0], GL_STATIC_DRAW);
+    glVertexAttribPointer(ATTRIB_VERTEX, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+    glEnableVertexAttribArray(ATTRIB_VERTEX);
+
+    m_points.clear();
+
+}
+
+
 void HW4::paintGL()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -1067,37 +1120,43 @@ void HW4::paintGL()
 
 
         case TEXTURED:
+            recomputeVertex2();
             glUseProgram(m_program[0].programId());
             glDrawArrays(GL_QUADS, 0, (GLsizei) m_numPoints);
             break;
         case WIREFRAME:
+            recomputeVertex1();
             glUseProgram(m_program[1].programId());		// bind the glsl progam
             glLineWidth(2.0f);
             for(int i=0; i<(int)m_numPoints; i+=4)
                 glDrawArrays(GL_LINE_LOOP, i, (GLsizei) 4);
             break;
         case TEX_WIRE:
+            recomputeVertex2();
             glUseProgram(m_program[0].programId());
             glDrawArrays(GL_QUADS, 0, (GLsizei) m_numPoints);
-
+            recomputeVertex1();
             glUseProgram(m_program[1].programId());		// bind the glsl progam
             glLineWidth(2.0f);
             for(int i=0; i<(int)m_numPoints; i+=4)
                 glDrawArrays(GL_LINE_LOOP, i, (GLsizei) 4);
             break;
          case FLAT_SHADING:
+            recomputeVertex2();
             glUseProgram(m_program[2].programId());		// bind the glsl progam
 //            glLineWidth(2.0f);
 //            for(int i=0; i<(int)m_numPoints; i+=3)
                 glDrawArrays(GL_TRIANGLES, 0, (GLsizei) m_numPoints);
             break;
          case SMOOTH_SHADING:
+            recomputeVertex2();
             glUseProgram(m_program[3].programId());		// bind the glsl progam
 //            glLineWidth(2.0f);
 //            for(int i=0; i<(int)m_numPoints; i+=3)
             glDrawArrays(GL_TRIANGLES, 0, (GLsizei) m_numPoints);
             break;
          case SMOOTH_SHADING_TEX:
+            recomputeVertex2();
             glUseProgram(m_program[4].programId());		// bind the glsl progam
 //            glLineWidth(2.0f);
             glDrawArrays(GL_TRIANGLES, 0, (GLsizei) m_numPoints);
