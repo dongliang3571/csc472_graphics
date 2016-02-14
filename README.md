@@ -1,4 +1,4 @@
-
+This is a Qt project, in order to run this you have to have Qt installed!
 
 Remember to **uncomment** following line in the HW.h if you're on Windows or Linux platform.......
 ```
