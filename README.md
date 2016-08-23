@@ -6,7 +6,7 @@ Open Graphics Library (OpenGL) is a cross-language, cross-platform application p
 
 Important Notes
 ===============
-- In order to use opengl libray in Qt, we need to add `QT += opengl` to .pro file to link against the module. Add `#include <QtOpenGL>` to include the definitions of the module's classes. *Note: a module is just bunch of header files reside together in one file, example of `#include <QtOpenGL>`:
+- In order to use opengl libray in Qt, we need to add `QT += opengl` to .pro file to link against the module. Add `#include <QtOpenGL>` to include the definitions of the module's classes. *Note:* A **module** is just a bunch of header files reside together in one file, example of `#include <QtOpenGL>`:
   ```
   #ifndef QT_QTOPENGL_MODULE_H
   #define QT_QTOPENGL_MODULE_H
