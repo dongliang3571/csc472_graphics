@@ -1,18 +1,29 @@
-This is a Qt project, in order to run this you have to have Qt installed!
+Experiencing OpenGL using Qt
+============================
 
-Remember to **uncomment** following line in the HW.h if you're on Windows or Linux platform.......
-```
-#include <GL/glu.h>
-```
-
-<strike>HW3 might not work properly on Mac I couldn't find out why. But if you can't display image on Mac, try Linux and Windows.....</strike>
-
-
-Solve the issue which image is not showing properly on Mac.....
+**Note:This is a Qt project, in order to run this you have to have Qt installed!**
+Open Graphics Library (OpenGL) is a cross-language, cross-platform application programming interface (API) for rendering 2D and 3D vector graphics. The API is typically used to interact with a graphics processing unit (GPU), to achieve hardware-accelerated rendering.
 
 Important Notes
 ===============
+- In order to use opengl libray in Qt, we need to add `QT += opengl` to .pro file to link against the module. Add `#include <QtOpenGL>` to include the definitions of the module's classes. *Note: a module is just bunch of header files reside together in one file, example of `#include <QtOpenGL>`:
+  ```
+  #ifndef QT_QTOPENGL_MODULE_H
+  #define QT_QTOPENGL_MODULE_H
+  #include <QtOpenGL/QtOpenGLDepends>
+  #include "qgl.h"
+  #include "qglbuffer.h"
+  #include "qglcolormap.h"
+  #include "qglframebufferobject.h"
+  #include "qglfunctions.h"
+  #include "qglpixelbuffer.h"
+  #include "qglshaderprogram.h"
+  #include "qtopenglglobal.h"
+  #include "qtopenglversion.h"
+  #endif
 
+  ```
+  After `#include <QtOpenGL>`, you can use `<QGLFunctions>`, `<QGLShaderProgram>` and so on. Alternatively, you can do `#include <QGLShaderProgram>` or `#include <QGLFunctions>`to include each of the class definition in `<QtOpenGL>`, that way you can be aware of what methods come from what classes.
 - `gl_ModelViewProjectionMatrix` in shader file(normally is multiplied by a Position attribute variable, eg. `gl_Position = gl_ModelViewProjectionMatrix * a.Position`) is controlled by glfunctions, eg. `glLoadIdentity()`,
 	`glOrtho(GLdouble left, GLdouble right, GLdouble bottom, GLdouble top, GLdouble zNear, GLdouble zFar)`, `glRotated(GLdouble angle, GLdouble x, GLdouble y, GLdouble z)` and so on, these are outside shader files, normally they reside in program methods, like
   ```
